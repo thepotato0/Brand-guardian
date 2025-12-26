@@ -1,0 +1,4 @@
+pystray
+praw
+Pillow
+win10toast-click
