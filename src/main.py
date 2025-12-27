@@ -1,85 +1,162 @@
-import pystray,praw,alert,time,sys,threading,logging
+import pystray
+import praw
+import alert
+import time
+import sys
+import threading
+import logging
+import re
 from PIL import Image
-import config  #  helper script for config.json
-class App: 
+import config  # helper script for config.json
+
+def setup_global_logging(log_file="app.log", log_level='INFO'):
+    handlers = [logging.StreamHandler(sys.stdout)]
+    if log_file:
+        handlers.append(logging.FileHandler(log_file))
+
+    logging.basicConfig(
+        level=getattr(logging, log_level.upper(), logging.INFO),
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=handlers,
+        force=True 
+    )
+
+class App:
     def __init__(self):
         self.running = True
+        
+        # 1. Setup Class Logger
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.info("Initializing Application...")
+
+        # 2. Load Config File
+        try:
+            self.config = config.get_config()
+            self._parse_config()
+        except Exception as e:
+            self.logger.critical(f"Failed to load configuration: {e}")
+            sys.exit(1)
+
+        # 3. Initialize Reddit Client
+        try:
+            self.reddit = praw.Reddit(
+                client_id=self.creds.get('client_id'),
+                client_secret=self.creds.get('client_secret'),
+                user_agent=self.creds.get('user_agent')
+            )
+            self.logger.info(f"Reddit Client Initialized (Read Only: {self.reddit.read_only})")
+        except Exception as e:
+            self.logger.critical(f"Failed to initialize Reddit client: {e}")
+            sys.exit(1)
+
+        # 4. Initialize System Tray
         self.icon_image = Image.open("icon.png")
         self.icon = pystray.Icon(
             'shield',
             self.icon_image,
             menu=pystray.Menu(
-                pystray.MenuItem("Exit", self.on_clicked)
+                pystray.MenuItem("Exit", self.on_exit)
             )
         )
+        self.search_thread = None
 
-    def on_clicked(self, icon, item):
-        self.running = False  # stop the search loop
-        icon.stop()           # stop the tray icon
+    def _parse_config(self):
+        self.creds = self.config.get('reddit_creds', {})
+        self.notifications = self.config.get('notifications', {})
+        self.settings = self.config.get('settings', {})
+        self.keywords = self.settings.get('keywords', [])
+        self.subreddits = self.settings.get('subreddits', [])
+
+        logging_conf = self.config.get('logging', {})
+        if logging_conf.get('log', False):
+            setup_global_logging(
+                log_file=logging_conf.get('log_file', 'app.log'), 
+                log_level=logging_conf.get('log_level', 'INFO')
+            )
+            self.logger.info("Logging configuration updated from config file.")
+
+    def on_exit(self):
+        self.logger.info("Exiting...")
+        self.running = False
+        if self.icon:
+            self.icon.stop()
 
     def run(self):
-        # start the search logic in a background thread
-        # this prevents the 'while True' from freezing the tray icon
+        self.logger.info("Starting background search thread...")
         self.search_thread = threading.Thread(target=self.continuous_search, daemon=True)
         self.search_thread.start()
 
-        # start the system tray (this blocks the main thread)
+        self.logger.info("Starting System Tray Icon...")
         self.icon.run()
 
     def continuous_search(self):
-        """The actual background worker logic"""
-        try:
-            self.config = config.get_config()
-        except FileNotFoundError as e:
-            print(e)
-            self.icon.stop()
-            sys.exit(1)
+        """Background worker loop"""
+        check_freq = self.settings.get('check_frequency_seconds', 60)
+        
+        # Prepare subreddit string once
+        if isinstance(self.subreddits, list):
+            sub_name = "+".join(self.subreddits)
+        else:
+            sub_name = str(self.subreddits)
 
-        creds = self.config['reddit_creds']
-        self.notifications = self.config['notifications']
-        self.settings = self.config['settings']
-        self.keywords = self.settings['keywords']
-        self.subreddits = self.settings['subreddits']
-        self.logging_config = self.config.get('logging', {})
+        if not sub_name:
+            self.logger.critical("No subreddits configured, Exiting...")
+            self.on_exit()
+            
 
-        self.reddit = praw.Reddit(
-            client_id=creds['client_id'],
-            client_secret=creds['client_secret'],
-            user_agent=creds['user_agent']
-        )
-        logging.basicConfig(level=self.logging_config.get('log_level', 'INFO'),
-                            filename=self.logging_config.get('log_file', 'app.log') if self.logging_config.get('log', False) else None,
-                            format='%(asctime)s - %(levelname)s - %(message)s')
+        self.logger.info(f"Monitoring subreddits: {sub_name}")
 
         while self.running:
             try:
-                self.search()
+                self._stream_comments(sub_name)
             except Exception as e:
-                logging.error(f"Search error: {e}")
-            time.sleep(self.settings.get('check_frequency_seconds', 60))
+                self.logger.error(f"Error in search loop: {e}", exc_info=True)
+                # Sleep before retrying to avoid rapid-fire API errors
+                time.sleep(check_freq)
 
-    def search(self):
-        subreddit = self.reddit.subreddit(self.subreddits)
-        logging.info("Starting search loop")
-        for comment in subreddit.stream.comments(skip_existing=True):
-            logging.info(f"Checking comment {comment.id} by {comment.author}")
+    def _stream_comments(self, sub_name):
+        subreddit = self.reddit.subreddit(sub_name)
+        
+        for comment in subreddit.stream.comments(skip_existing=True, pause_after=0):
             if not self.running:
                 break
-                
+            
+            if comment is None:
+                continue
+
+            self._process_comment(comment)
+
+    def _process_comment(self, comment):
+        try:
+            self.logger.info(f"Processing comment {comment.id}...")
             text = comment.body.lower()
-            if any(key in text for key in self.keywords):
-                logging.info(f"Keyword match found in comment {comment.id}")
-                try:
-                    alert.Alert(
-                        comment.author.name, 
-                        comment.body, 
-                        f"https://reddit.com{comment.permalink}", 
-                        self.notifications,
-                    )
-                except Exception as e:
-                    logging.error(f"Alert error for comment {comment.id}: {e}")
+
+            # 1. Check for whole-word matches only using Regex
+            matched_keyword = None
+            for k in self.keywords:
+                # \b ensures "{keyword}" matches but "something{keyword}something" does not
+                pattern = rf"\b{re.escape(k.lower())}\b"
+                if re.search(pattern, text):
+                    matched_keyword = k
+                    break
+                
+            # 2. Only proceed if a match was found
+            if matched_keyword:
+                author = getattr(comment, 'author', None)
+                author_name = getattr(author, 'name', 'unknown') if author else 'unknown'
+                self.logger.info(f"MATCH FOUND: '{matched_keyword}' in {comment.id} by {author_name}")
+
+                alert.Alert(
+                    author_name,
+                    comment.body,
+                    comment.permalink,
+                    self.notifications,
+                )
+
+        except Exception as e:
+            self.logger.error(f"Error processing comment {comment.id}: {e}", exc_info=True)
 
 if __name__ == "__main__":
+    setup_global_logging() # Initial basic setup
     app = App()
     app.run()
-    sys.exit(0)

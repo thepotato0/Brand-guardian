@@ -1,6 +1,5 @@
 import json
 
-from sympy import true
 def get_config():
     # check for config.json if not found create one and return with error and exit
     try:

@@ -3,7 +3,7 @@ an automatic brand guardian script made in python
 
 ## what is brand guarding ?
 
-It's controlling how the brand looks, feels, and sounds everywhere, from logos and messaging to customer service and digital presence
+It's controlling how the brand looks, feels, and sounds everywhere.
 
 ## how does this script work ?
 
@@ -29,13 +29,13 @@ It's controlling how the brand looks, feels, and sounds everywhere, from logos a
 
 - change the configs to your liking (example: add [reddit api secrets](https://www.geeksforgeeks.org/python/how-to-get-client_id-and-client_secret-for-python-reddit-api-registration/))
 - run the script again
-- report issues
+- report issues you come across
 
 
 ## todo (by priority)
 
- - [ ] make source code more readable 
- - [ ] fix bugs
+ - [x] make source code more readable 
+ - [x] fix bugs
  - [ ] add email and sms alerting logic 
  - [ ] and sentiment analysis logic
  - [ ]  make compiled version for installation
