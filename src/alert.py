@@ -1,9 +1,13 @@
 from notifypy import Notify
+from textblob import TextBlob
 
-def Alert(comment_author, comment_body, comment_permalink, notifications):
+def _eval(text):
+    return TextBlob(text).sentiment.polarity
+
+
+def Alert(comment_author, comment_body, comment_permalink, notifications, matched_keyword):
     
-    link = f"https://reddit.com{comment_permalink}"
-    message = f"New mention by {comment_author}:\n{comment_body[:100]}..."
+    message = f"{comment_author} has a {"positive" if _eval(comment_body) > 0 else "negative"} opinion about {matched_keyword}!:\n{comment_body[:100]}...\nLink: {comment_permalink}"
 
     if notifications.get("desktop_alerts", False): 
         notification = Notify()

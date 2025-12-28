@@ -36,6 +36,7 @@ It's controlling how the brand looks, feels, and sounds everywhere.
 
  - [x] make source code more readable 
  - [x] fix bugs
+ - [x] add sentiment analysis logic
+-  [ ] add cross-platform clickable dekstop notification
  - [ ] add email and sms alerting logic 
- - [ ] add sentiment analysis logic
- - [ ]  make compiled version for installation
+ - [ ] make compiled version for installation

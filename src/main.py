@@ -144,7 +144,7 @@ class App:
 
     def _process_comment(self, comment):
         try:
-            #self.logger.info(f"Processing comment {comment.id}...")
+            self.logger.info(f"Processing comment {comment.id}...")
             text = comment.body.lower()
 
             # 1. Check for whole-word matches only using Regex
@@ -167,6 +167,7 @@ class App:
                     comment.body,
                     comment.permalink,
                     self.notifications,
+                    matched_keyword
                 )
 
         except Exception as e:
