@@ -2,3 +2,4 @@ pystray
 praw
 Pillow
 notify_py
+python-dotenv

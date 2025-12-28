@@ -11,7 +11,7 @@ def Alert(comment_author, comment_body, comment_permalink, notifications):
         notification.message = message
         notification.icon = "icon.png"  
         notification.send()
-    if notification.get("email_alerts", False):
+    if notifications.get("email_alerts", False):
         # Placeholder for email alert logic
         pass
     if notifications.get("sms_alerts", False):

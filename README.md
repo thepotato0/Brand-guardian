@@ -19,14 +19,14 @@ It's controlling how the brand looks, feels, and sounds everywhere.
 
 - When your keywords appear in new comments, you’ll receive a desktop alert.
 
-  
+
 
 - Clicking the notification opens the Reddit comment directly in your browser.
 
 ## how to run (for testing)
 - run `pip install -r requirements.txt` in /src directory
+- create an enviroment file according to "./example_env_file.txt" (format should be .env)
 - run src/main.py, a config.json file with defaults should be created
-
 - change the configs to your liking (example: add [reddit api secrets](https://www.geeksforgeeks.org/python/how-to-get-client_id-and-client_secret-for-python-reddit-api-registration/))
 - run the script again
 - report issues you come across
@@ -37,5 +37,5 @@ It's controlling how the brand looks, feels, and sounds everywhere.
  - [x] make source code more readable 
  - [x] fix bugs
  - [ ] add email and sms alerting logic 
- - [ ] and sentiment analysis logic
+ - [ ] add sentiment analysis logic
  - [ ]  make compiled version for installation

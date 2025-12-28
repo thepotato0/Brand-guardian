@@ -6,6 +6,8 @@ import sys
 import threading
 import logging
 import re
+import os
+from dotenv import load_dotenv
 from PIL import Image
 import config  # helper script for config.json
 
@@ -29,20 +31,29 @@ class App:
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.info("Initializing Application...")
 
-        # 2. Load Config File
+        # 2. Load Config and Dotenv File
+        self.logger.info("Loading configuration...")
         try:
             self.config = config.get_config()
             self._parse_config()
         except Exception as e:
             self.logger.critical(f"Failed to load configuration: {e}")
             sys.exit(1)
+        try:
+            self.dotenv_path = load_dotenv()
+            self._parse_enviroment_variables()
+            self.logger.info(".env file loaded successfully.")
+        except Exception as e:
+            self.logger.critical(f"Failed to load .env file: {e}")
+            sys.exit(1)
+
 
         # 3. Initialize Reddit Client
         try:
             self.reddit = praw.Reddit(
-                client_id=self.creds.get('client_id'),
-                client_secret=self.creds.get('client_secret'),
-                user_agent=self.creds.get('user_agent')
+                client_id=self.REDDIT_CLIENT_ID,
+                client_secret=self.REDDIT_CLIENT_SECRET,
+                user_agent=self.REDDIT_USER_AGENT,
             )
             self.logger.info(f"Reddit Client Initialized (Read Only: {self.reddit.read_only})")
         except Exception as e:
@@ -74,6 +85,11 @@ class App:
                 log_level=logging_conf.get('log_level', 'INFO')
             )
             self.logger.info("Logging configuration updated from config file.")
+    
+    def _parse_enviroment_variables(self):
+        self.REDDIT_CLIENT_ID = os.getenv('REDDIT_CLIENT_ID', self.creds.get('client_id'))
+        self.REDDIT_CLIENT_SECRET = os.getenv('REDDIT_CLIENT_SECRET', self.creds.get('client_secret'))
+        self.REDDIT_USER_AGENT = os.getenv('REDDIT_USER_AGENT', self.creds.get('user_agent'))
 
     def on_exit(self):
         self.logger.info("Exiting...")
@@ -128,7 +144,7 @@ class App:
 
     def _process_comment(self, comment):
         try:
-            self.logger.info(f"Processing comment {comment.id}...")
+            #self.logger.info(f"Processing comment {comment.id}...")
             text = comment.body.lower()
 
             # 1. Check for whole-word matches only using Regex

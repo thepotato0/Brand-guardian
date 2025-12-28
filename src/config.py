@@ -8,11 +8,6 @@ def get_config():
             return config
     except FileNotFoundError:
         default_config = {
-                "reddit_creds": {
-                    "client_id": "YOUR_ACTUAL_ID",
-                    "client_secret": "YOUR_ACTUAL_SECRET",
-                    "user_agent": "BrandGuardian v1.0 by /u/YourRedditUsername"
-                },
                 "settings": {
                     "keywords": ["your_product", "your_brand", "your_service"],
                     "subreddits": "apple",
@@ -29,7 +24,7 @@ def get_config():
                     "log_file": "app.log",
                     "log_level": "INFO"
                 }
-}
+            }
         with open("config.json", "w") as f:
             json.dump(default_config, f, indent=4)
         raise FileNotFoundError("config.json not found. A default config file has been created. Please update it with your settings and restart the application.")
