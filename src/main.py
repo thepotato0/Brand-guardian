@@ -1,6 +1,6 @@
 import pystray
 import praw
-import alert
+import notify # helper script for notifications
 import time
 import sys
 import threading
@@ -87,10 +87,16 @@ class App:
             self.logger.info("Logging configuration updated from config file.")
     
     def _parse_enviroment_variables(self):
-        self.REDDIT_CLIENT_ID = os.getenv('REDDIT_CLIENT_ID', self.creds.get('client_id'))
-        self.REDDIT_CLIENT_SECRET = os.getenv('REDDIT_CLIENT_SECRET', self.creds.get('client_secret'))
-        self.REDDIT_USER_AGENT = os.getenv('REDDIT_USER_AGENT', self.creds.get('user_agent'))
-
+        self.REDDIT_CLIENT_ID = os.getenv('REDDIT_CLIENT_ID')
+        self.REDDIT_CLIENT_SECRET = os.getenv('REDDIT_CLIENT_SECRET')
+        self.REDDIT_USER_AGENT = os.getenv('REDDIT_USER_AGENT')
+        self.EMAIL_USER = os.getenv('REDDIT_USER_AGENT')
+        self.EMAIL_PASS = os.getenv('EMAIL_PASS')
+        self.TARGET_EMAIL = os.getenv('TARGET_EMAIL')
+        self.TIWILIO_SID = os.getenv('TIWILIO_SID')
+        self.TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN') 
+        self.TWILIO_PHONE = os.getenv('TWILIO_PHONE')
+        self.TARGET_PHONE = os.getenv('TARGET_PHONE')
     def on_exit(self):
         self.logger.info("Exiting...")
         self.running = False
@@ -133,7 +139,7 @@ class App:
     def _stream_comments(self, sub_name):
         subreddit = self.reddit.subreddit(sub_name)
         
-        for comment in subreddit.stream.comments(skip_existing=True, pause_after=0):
+        for comment in subreddit.stream.comments(skip_existing=False, pause_after=0):
             if not self.running:
                 break
             
@@ -148,26 +154,34 @@ class App:
             text = comment.body.lower()
 
             # 1. Check for whole-word matches only using Regex
-            matched_keyword = None
+            self.matched_keyword = None
             for k in self.keywords:
                 # \b ensures "{keyword}" matches but "something{keyword}something" does not
                 pattern = rf"\b{re.escape(k.lower())}\b"
                 if re.search(pattern, text):
-                    matched_keyword = k
+                    self.matched_keyword = k
                     break
                 
             # 2. Only proceed if a match was found
-            if matched_keyword:
+            if self.matched_keyword:
                 author = getattr(comment, 'author', None)
                 author_name = getattr(author, 'name', 'unknown') if author else 'unknown'
-                self.logger.info(f"MATCH FOUND: '{matched_keyword}' in {comment.id} by {author_name}")
+                self.logger.info(f"MATCH FOUND: '{self.matched_keyword}' in {comment.id} by {author_name}")
 
-                alert.Alert(
+                notify.Notify(
                     author_name,
                     comment.body,
                     comment.permalink,
                     self.notifications,
-                    matched_keyword
+                    self.matched_keyword,
+                    self.logger,
+                    self.EMAIL_USER,
+                    self.EMAIL_PASS,
+                    self.TARGET_EMAIL,
+                    self.TIWILIO_SID,
+                    self.TIWILIO_SID,
+                    self.TWILIO_PHONE,
+                    self.TARGET_PHONE
                 )
 
         except Exception as e:

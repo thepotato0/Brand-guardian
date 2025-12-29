@@ -1,7 +1,14 @@
 # Reddit credentals
-REDDIT_CLIENT_ID=your_client_id
-REDDIT_CLIENT_SECRET=your_client_secret
-REDDIT_USER_AGENT=your_user_agent
+REDDIT_CLIENT_ID=
+REDDIT_CLIENT_SECRET=
+REDDIT_USER_AGENT=
 # SMS and email credentials
-EMAIL=your_email
-Phone_Number=your_phone_number
+# email
+EMAIL_USER=
+EMAIL_PASS=
+TARGET_EMAIL=
+# SMS
+TIWILIO_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_PHONE=
+TARGET_PHONE=

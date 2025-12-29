@@ -25,9 +25,9 @@ It's controlling how the brand looks, feels, and sounds everywhere.
 
 ## how to run (for testing)
 - run `pip install -r requirements.txt` in /src directory
-- create an enviroment file according to "./example_env_file.txt" (format should be .env)
+- create an enviroment file according to "./example_env_file.txt" (format should be .env) [how to get reddit api secrets](https://www.geeksforgeeks.org/python/how-to-get-client_id-and-client_secret-for-python-reddit-api-registration/)
 - run src/main.py, a config.json file with defaults should be created
-- change the configs to your liking (example: add [reddit api secrets](https://www.geeksforgeeks.org/python/how-to-get-client_id-and-client_secret-for-python-reddit-api-registration/))
+- change the configs to your liking 
 - run the script again
 - report issues you come across
 
@@ -37,6 +37,6 @@ It's controlling how the brand looks, feels, and sounds everywhere.
  - [x] make source code more readable 
  - [x] fix bugs
  - [x] add sentiment analysis logic
--  [ ] add cross-platform clickable dekstop notification
- - [ ] add email and sms alerting logic 
+ - [x] add email and sms alerting logic 
+ - [ ] add cross-platform clickable dekstop notification
  - [ ] make compiled version for installation
