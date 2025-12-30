@@ -107,7 +107,7 @@ class App:
         self.logger.info("Starting background search thread...")
         self.search_thread = threading.Thread(target=self.continuous_search, daemon=True)
         self.search_thread.start()
-
+        
         self.logger.info("Starting System Tray Icon...")
         self.icon.run()
 

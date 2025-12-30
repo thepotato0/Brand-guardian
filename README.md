@@ -1,11 +1,11 @@
 #  Brand guardian
 an automatic brand guardian script made in python
 
-## what is brand guarding ?
+## What is brand guarding ?
 
 It's controlling how the brand looks, feels, and sounds everywhere.
 
-## how does this script work ?
+## How does this script work ?
 
   
 
@@ -23,7 +23,7 @@ It's controlling how the brand looks, feels, and sounds everywhere.
 
 - Clicking the notification opens the Reddit comment directly in your browser.
 
-## how to run (for testing)
+## How to run (for testing)
 - run `pip install -r requirements.txt` in /src directory
 - create an enviroment file according to "./example_env_file.txt" (format should be .env) [how to get reddit api secrets](https://www.geeksforgeeks.org/python/how-to-get-client_id-and-client_secret-for-python-reddit-api-registration/)
 - run src/main.py, a config.json file with defaults should be created
@@ -32,7 +32,7 @@ It's controlling how the brand looks, feels, and sounds everywhere.
 - report issues you come across
 
 
-## todo (by priority)
+## Todo (By priority)
 
  - [x] make source code more readable 
  - [x] fix bugs
@@ -40,3 +40,6 @@ It's controlling how the brand looks, feels, and sounds everywhere.
  - [x] add email and sms alerting logic 
  - [ ] add cross-platform clickable dekstop notification
  - [ ] make compiled version for installation
+
+## Get Involved
+### Feel free to contribute or give your recommendations in the issues tab
