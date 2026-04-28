@@ -1,6 +1,6 @@
 import pystray
 import praw
-import notify # helper script for notifications
+import notify # Helper script for notifications
 import time
 import sys
 import threading
@@ -9,7 +9,7 @@ import re
 import os
 from dotenv import load_dotenv
 from PIL import Image
-import config  # helper script for config.json
+import config  # Helper script for config.json
 
 def setup_global_logging(log_file="app.log", log_level='INFO'):
     handlers = [logging.StreamHandler(sys.stdout)]
@@ -20,7 +20,7 @@ def setup_global_logging(log_file="app.log", log_level='INFO'):
         level=getattr(logging, log_level.upper(), logging.INFO),
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=handlers,
-        force=True 
+        force=True
     )
 
 class App:
@@ -97,6 +97,7 @@ class App:
         self.TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN') 
         self.TWILIO_PHONE = os.getenv('TWILIO_PHONE')
         self.TARGET_PHONE = os.getenv('TARGET_PHONE')
+        
     def on_exit(self):
         self.logger.info("Exiting...")
         self.running = False

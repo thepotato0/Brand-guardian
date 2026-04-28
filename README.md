@@ -7,18 +7,14 @@ It's controlling how the brand looks, feels, and sounds everywhere.
 
 ## How does this script work ?
 
-  
 
 - The tray icon (icon.png) will appear in your system tray.
 
-  
 
 - The app runs a background thread that continuously monitors Reddit.
 
-  
 
-- When your keywords appear in new comments, you’ll receive a desktop alert.
-
+- When your keywords appear in new comments, you’ll receive a desktop alert
 
 
 - Clicking the notification opens the Reddit comment directly in your browser.
@@ -38,8 +34,12 @@ It's controlling how the brand looks, feels, and sounds everywhere.
  - [x] fix bugs
  - [x] add sentiment analysis logic
  - [x] add email and sms alerting logic 
+ - [ ] add streamlit web interface
+    - [ ] add the ability to export mentions 
+    - [ ] make streamlit interface
  - [ ] add cross-platform clickable dekstop notification
  - [ ] make compiled version for installation
+ - [ ] add other search methods
 
 ## Get Involved
 ### Feel free to contribute or give your recommendations in the issues tab
