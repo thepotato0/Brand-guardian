@@ -12,7 +12,7 @@ def get_config():
                     "keywords": ["your_product", "your_brand", "your_service"],
                     "subreddits": "apple",
                     "min_sentiment_threshold": 0.2,
-                    "check_frequency_seconds": 180
+                    "check_frequency_seconds": 5
                 },
                 "notifications": {
                     "sms_alerts": True,

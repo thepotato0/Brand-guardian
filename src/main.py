@@ -1,15 +1,8 @@
-import pystray
-import praw
-import notify # Helper script for notifications
-import time
-import sys
-import threading
-import logging
-import re
-import os
+import pystray,praw,time,sys,threading,logging,re,os
 from dotenv import load_dotenv
 from PIL import Image
 import config  # Helper script for config.json
+import notify # Helper script for notifications
 
 def setup_global_logging(log_file="app.log", log_level='INFO'):
     handlers = [logging.StreamHandler(sys.stdout)]
@@ -31,7 +24,7 @@ class App:
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.info("Initializing Application...")
 
-        # 2. Load Config and Dotenv File
+        # 2. Load Config and Enviroment variables
         self.logger.info("Loading configuration...")
         try:
             self.config = config.get_config()
@@ -69,7 +62,7 @@ class App:
                 pystray.MenuItem("Exit", self.on_exit)
             )
         )
-        self.search_thread = None
+        self.search_thread = None 
 
     def _parse_config(self):
         self.creds = self.config.get('reddit_creds', {})
@@ -77,6 +70,7 @@ class App:
         self.settings = self.config.get('settings', {})
         self.keywords = self.settings.get('keywords', [])
         self.subreddits = self.settings.get('subreddits', [])
+        self.check_freq = self.settings.get('check_frequency_seconds', 5)
 
         logging_conf = self.config.get('logging', {})
         if logging_conf.get('log', False):
@@ -90,13 +84,15 @@ class App:
         self.REDDIT_CLIENT_ID = os.getenv('REDDIT_CLIENT_ID')
         self.REDDIT_CLIENT_SECRET = os.getenv('REDDIT_CLIENT_SECRET')
         self.REDDIT_USER_AGENT = os.getenv('REDDIT_USER_AGENT')
-        self.EMAIL_USER = os.getenv('REDDIT_USER_AGENT')
-        self.EMAIL_PASS = os.getenv('EMAIL_PASS')
-        self.TARGET_EMAIL = os.getenv('TARGET_EMAIL')
-        self.TIWILIO_SID = os.getenv('TIWILIO_SID')
-        self.TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN') 
-        self.TWILIO_PHONE = os.getenv('TWILIO_PHONE')
-        self.TARGET_PHONE = os.getenv('TARGET_PHONE')
+        self.credentials = {
+            "EMAIL_USER": os.getenv('REDDIT_USER_AGENT'),
+            "EMAIL_PASS": os.getenv('EMAIL_PASS'),
+            "TARGET_EMAIL": os.getenv('TARGET_EMAIL'),
+            "TIWILIO_SID": os.getenv('TIWILIO_SID'),
+            "TWILIO_AUTH_TOKEN": os.getenv('TWILIO_AUTH_TOKEN'),
+            "TWILIO_PHONE": os.getenv('TWILIO_PHONE'),
+            "TARGET_PHONE":  os.getenv('TARGET_PHONE')
+        }
         
     def on_exit(self):
         self.logger.info("Exiting...")
@@ -114,7 +110,6 @@ class App:
 
     def continuous_search(self):
         """Background worker loop"""
-        check_freq = self.settings.get('check_frequency_seconds', 60)
         
         # Prepare subreddit string once
         if isinstance(self.subreddits, list):
@@ -135,7 +130,7 @@ class App:
             except Exception as e:
                 self.logger.error(f"Error in search loop: {e}", exc_info=True)
                 # Sleep before retrying to avoid rapid-fire API errors
-                time.sleep(check_freq)
+                time.sleep(self.check_freq)
 
     def _stream_comments(self, sub_name):
         subreddit = self.reddit.subreddit(sub_name)
@@ -176,19 +171,13 @@ class App:
                     self.notifications,
                     self.matched_keyword,
                     self.logger,
-                    self.EMAIL_USER,
-                    self.EMAIL_PASS,
-                    self.TARGET_EMAIL,
-                    self.TIWILIO_SID,
-                    self.TIWILIO_SID,
-                    self.TWILIO_PHONE,
-                    self.TARGET_PHONE
+                    self.credentials,
                 )
 
         except Exception as e:
             self.logger.error(f"Error processing comment {comment.id}: {e}", exc_info=True)
 
 if __name__ == "__main__":
-    setup_global_logging() # Initial basic setup
+    setup_global_logging() # Basic initial setup
     app = App()
     app.run()

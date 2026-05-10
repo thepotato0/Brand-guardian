@@ -7,7 +7,7 @@ def _eval(text):
     return TextBlob(text).sentiment.polarity
 
 
-def Notify(comment_author, comment_body, comment_permalink, notifications, matched_keyword,logger,EMAIL_USER,EMAIL_PASS,TARGET_EMAIL,TWILIO_SID,TWILIO_AUTH_TOKEN,TWILIO_PHONE,TARGET_PHONE):
+def Notify(comment_author, comment_body, comment_permalink, notifications, matched_keyword,logger,cred):
     
     message = f"{comment_author} has a {"positive" if _eval(comment_body) > 0 else "negative"} opinion about {matched_keyword}!:\n{comment_body[:100]}...\nLink: {comment_permalink}"
 
@@ -23,9 +23,9 @@ def Notify(comment_author, comment_body, comment_permalink, notifications, match
 
     if notifications.get("emails", False):
         try:
-            yag = yagmail.SMTP(EMAIL_USER, EMAIL_PASS)
+            yag = yagmail.SMTP(cred["EMAIL_USER"], cred["EMAIL_PASS"])
             yag.send(
-                to=TARGET_EMAIL,
+                to=cred["TARGET_EMAIL"],
                 subject=f"Brand Alert: mention of {matched_keyword}",
                 contents=message
             )
@@ -33,11 +33,11 @@ def Notify(comment_author, comment_body, comment_permalink, notifications, match
             logger.error(f"Failed to send email notification: {e}", exc_info=True)
     if notifications.get("sms", False):
         try:
-            client = Client(TWILIO_SID, TWILIO_AUTH_TOKEN)
+            client = Client(cred["TWILIO_SID"], cred["TWILIO_AUTH_TOKEN"])
             client.messages.create(
                 body=f"BrandGuardian: {message[:140]}", # SMS length limit
-                from_=TWILIO_PHONE,
-                to=TARGET_PHONE
+                from_=cred["TWILIO_PHONE"],
+                to=["TARGET_PHONE"]
             )
         except Exception as e:
             print(f"SMS failed: {e}")
